@@ -1,0 +1,78 @@
+#include <iostream>
+#include <thread>
+#include <chrono>
+using namespace std;
+
+enum class TrafficLightState { RED, GREEN, YELLOW };
+enum class PedestrianSignal { WALK, DONT_WALK, DONT_WALK_FLASHING };
+
+class TrafficLightWithPedestrian {
+private:
+    TrafficLightState vehicleState;
+    PedestrianSignal pedestrianState;
+
+    int greenDuration;
+    int yellowDuration;
+    int redDuration;
+    int walkDuration;
+    int flashingDuration;
+
+    void displayStates() {
+        system("clear"); // Use "cls" on Windows
+        cout << "Vehicle Traffic Light: ";
+        switch(vehicleState) {
+            case TrafficLightState::RED: cout << "RED\n"; break;
+            case TrafficLightState::GREEN: cout << "GREEN\n"; break;
+            case TrafficLightState::YELLOW: cout << "YELLOW\n"; break;
+        }
+
+        cout << "Pedestrian Signal: ";
+        switch(pedestrianState) {
+            case PedestrianSignal::WALK: cout << "WALK\n"; break;
+            case PedestrianSignal::DONT_WALK: cout << "DON'T WALK\n"; break;
+            case PedestrianSignal::DONT_WALK_FLASHING: cout << "DON'T WALK (FLASHING)\n"; break;
+        }
+        cout << "------------------------------\n";
+    }
+
+public:
+    TrafficLightWithPedestrian(int green, int yellow, int red, int walk, int flash)
+    : greenDuration(green), yellowDuration(yellow), redDuration(red),
+      walkDuration(walk), flashingDuration(flash),
+      vehicleState(TrafficLightState::RED), pedestrianState(PedestrianSignal::DONT_WALK) {}
+
+    void runCycle() {
+        while(true) {
+            // RED light for vehicles, WALK for pedestrians
+            vehicleState = TrafficLightState::RED;
+            pedestrianState = PedestrianSignal::WALK;
+            displayStates();
+            this_thread::sleep_for(chrono::seconds(walkDuration));
+
+            // Flashing DON'T WALK for pedestrians before green light
+            pedestrianState = PedestrianSignal::DONT_WALK_FLASHING;
+            displayStates();
+            this_thread::sleep_for(chrono::seconds(flashingDuration));
+
+            // GREEN light for vehicles, DON'T WALK for pedestrians
+            vehicleState = TrafficLightState::GREEN;
+            pedestrianState = PedestrianSignal::DONT_WALK;
+            displayStates();
+            this_thread::sleep_for(chrono::seconds(greenDuration));
+
+            // YELLOW light for vehicles, DON'T WALK for pedestrians
+            vehicleState = TrafficLightState::YELLOW;
+            pedestrianState = PedestrianSignal::DONT_WALK;
+            displayStates();
+            this_thread::sleep_for(chrono::seconds(yellowDuration));
+        }
+    }
+};
+
+int main() {
+    // green=5s, yellow=2s, red=5s, walk=4s, flashing=1s
+    TrafficLightWithPedestrian trafficLight(5, 2, 5, 4, 1);
+    trafficLight.runCycle();
+
+    return 0;
+}
